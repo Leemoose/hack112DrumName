@@ -7,6 +7,13 @@ mid = mido.MidiFile('AULDLANG.mid')
 
 notes = {'timeTick':0, 'notes':[]}
 
+'''
+gives us with dictionary notes which contains list at key 'notes', which is
+a list of tuples in order of each note start in the given midi file. Tuple is 
+(noteId, tick of note, time in seconds of note)
+tick of note may not really be important.... but time in seconds could be
+'''
+
 
 tempo = 50000
 
@@ -34,3 +41,4 @@ for i, track in enumerate(mid.tracks):
             if msg.startswith("note_on"):
                 notes['notes'].append((noteNum, notes['timeTick'],
                     mido.tick2second(int(notes['timeTick']), int(mid.ticks_per_beat),int(tempo))*10))
+
