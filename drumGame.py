@@ -1,10 +1,5 @@
-# oopyDotsDemo.py
-# starts with betterDotsDemo and adds:
-#   * a dotCounter that counts all the instances of Dot or its subclasses
-#   * a MovingDot subclass of Dot that scrolls horizontally
-#   * a FlashingMovingDot subclass of MovingDot that flashes and moves
 
-import random
+import random, copy, midiFile
 from tkinter import *
 
 
@@ -52,7 +47,7 @@ class MovingDot(Dot):
     # Model
     def __init__(self, x, y, color):
         super().__init__(x, y, color)
-        self.speed = -5 # default initial speed
+        self.speed = -10 # default initial speed
 
     # Controller
     def move(self, data):
@@ -68,6 +63,7 @@ class MovingDot(Dot):
 # Core animation code
 
 def init(data):
+    data.undrawnNotes = midiFile.midiBeatTimes('AULDLANG.mid')['notes']
     data.dots = [ ]
     data.time = 0
     data.simpleDot = 30
@@ -187,16 +183,26 @@ def timerFired(data):
     if not data.menu and not data.paused:
         data.time += 1
 
-        if data.time % 15 == 0: #Adds dots every sec
-            lane = random.randint(2, 4)
-            color = None
-            if lane == 2:
-                color = "blue"
-            elif lane == 3:
-                color = "green"
-            else:
-                color = "red"
-            data.dots.append(MovingDot(data.width, data.height * lane / 6, color))
+
+        newNotes = copy.deepcopy(data.undrawnNotes)
+
+        for note in data.undrawnNotes:
+            convertedNoteTime = note[1] * 10
+
+            if convertedNoteTime <= data.time:
+
+                lane = int(random.randint(2,4))
+
+                color = None
+                if lane == 2:
+                    color = "blue"
+                elif lane == 3:
+                    color = "green"
+                else:
+                    color = "red"
+                data.dots.append(MovingDot(data.width, data.height * lane / 6, color))
+                newNotes.remove(note)
+        data.undrawnNotes = newNotes
 
         newDots = []
         for dot in data.shrinkingDots:
@@ -257,7 +263,7 @@ def run(width=300, height=300):
     data = Struct()
     data.width = width
     data.height = height
-    data.timerDelay = 20 # milliseconds
+    data.timerDelay = 100 # milliseconds
     init(data)
     # create the root and the canvas
     root = Tk()
