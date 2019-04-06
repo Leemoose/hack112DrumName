@@ -116,7 +116,7 @@ def mousePressed(event, data):
 def redrawAll(canvas, data):
     if not data.menu and not data.paused:
         canvas.create_rectangle(10, data.height/3 - 30, data.width, data.height*2/3+30, fill = "gray")
-        canvas.create_text(data.width/2, 40, text="GOAT HERO... %d Points" % data.score, font = ("Arial", 30, "bold"), fill = "red")
+        canvas.create_text(data.width/2, 40, text="%d Points" % data.score, font = ("Times", 30, "bold italic"), fill = "red")
         canvas.create_rectangle(data.xButton + 10, data.height/3 - 15, data.width, data.height/3 +15, fill = "darkred")
         canvas.create_rectangle(data.xButton + 10, data.height*2/3 -15, data.width, data.height*2/3 +15, fill = "darkred")
         canvas.create_rectangle(data.xButton+10, data.height/2 - 15, data.width, data.height/2 +15, fill = "darkred")
@@ -131,14 +131,24 @@ def redrawAll(canvas, data):
         for dot in data.shrinkingDots:
             dot.draw(canvas)
     elif data.menu and not data.paused:
-        back = Rect(data.width/6, data.height/6, data.width*5/6,data.height*5/6, "gray")
-        data.menuRect.append(back)
-        button1 = Rect(data.width/5,data.height/5, data.width*4/5, data.height*2/5, "black", "Click 1-6 to start game!")
-        data.menuRect.append(button1)
-        for rect in data.menuRect:
-            rect.draw(canvas)
+        drawLogo(canvas, data)
+        # back = Rect(data.width/6, data.height/6, data.width*5/6,data.height*5/6, "gray")
+        # data.menuRect.append(back)
+        # button1 = Rect(data.width/5,data.height/5, data.width*4/5, data.height*2/5, "black", "Click 1-6 to start game!")
+        # data.menuRect.append(button1)
+        # for rect in data.menuRect:
+        #     rect.draw(canvas)
+
+def drawLogo(canvas, data):
+    canvas.create_rectangle(0,0,data.width,data.height, fill="#d3b89b")
+    img = PhotoImage(file="goatHero.gif")
+    label = Label(image=img)
+    label.image = img # keep a reference!
+    canvas.create_image(data.width//2,data.height//2, image=img)
 
 def keyPressed(event, data, canvas):
+    if event.keysym == 'r':
+        init(data)
     # if event.keysym == "Up":
     #     data.trueSong.pop()
     #     data.trueSong.append(2)
@@ -254,7 +264,7 @@ def timerFired(data):
 
         if len(data.trueSong) > data.partOfSong and data.trueSong[data.partOfSong] != 0:
             lane = data.trueSong[data.partOfSong] + 1
-            print (str(lane))
+            # print (str(lane))
             color = None
             if lane == 2:
                 color = "blue"
@@ -346,7 +356,7 @@ def run(width=1000, height=500):
     timerFiredWrapper(canvas, data)
     # and launch the app
     root.mainloop()  # blocks until window is closed
-    print(data.trueSong)
+    # print(data.trueSong)
     pygame.mixer.quit()
 
 if __name__ == "__main__":
