@@ -27,18 +27,21 @@ class Rect(object):
 class Dot(object):
 
     # Model
-    def __init__(self, x, y, color, r = 30):
+    def __init__(self, x, y, color, r = 30, button=None):
         self.x = x
         self.y = y
         self.r = r
         self.fill = color
         self.time = 0 #Time is used for dots that shrink
+        self.button = button
 
     # View
     def draw(self, canvas):
         canvas.create_oval(self.x-self.r, self.y-self.r,
                            self.x+self.r, self.y+self.r,
                            fill=self.fill)
+        if self.button != None:
+            canvas.create_text(self.x,self.y,text=self.button, fill="white", font="Times 30 bold")
 
     # Controller
     def containsPoint(self, x, y):
@@ -83,9 +86,9 @@ def init(data):
     data.clicked = True
     data.shrinkingDots = [] #Dots you missed
     data.clickDots = [] #Main 3 guitar dots
-    data.clickDot1 = Dot(data.xButton, data.height/3, "black", r=data.simpleDot)
-    data.clickDot2 = Dot(data.xButton, data.height/2, "black", r=data.simpleDot)
-    data.clickDot3 = Dot(data.xButton, data.height*2/3, "black", r=data.simpleDot)
+    data.clickDot1 = Dot(data.xButton, data.height/3, "black", r=data.simpleDot, button="W")
+    data.clickDot2 = Dot(data.xButton, data.height/2, "black", r=data.simpleDot, button="S")
+    data.clickDot3 = Dot(data.xButton, data.height*2/3, "black", r=data.simpleDot, button="X")
     data.clickDots.extend([data.clickDot1, data.clickDot2, data.clickDot3])
     data.paused = False
     data.menu = True
