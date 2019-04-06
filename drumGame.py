@@ -1,8 +1,12 @@
+# oopyDotsDemo.py
+# starts with betterDotsDemo and adds:
+#   * a dotCounter that counts all the instances of Dot or its subclasses
+#   * a MovingDot subclass of Dot that scrolls horizontally
+#   * a FlashingMovingDot subclass of MovingDot that flashes and moves
 
-import random, copy, midiFile
+import random
 from tkinter import *
-from pygame import mixer
-
+import pygame
 
 
 class Rect(object):
@@ -47,24 +51,12 @@ class Dot(object):
 
 class MovingDot(Dot):
     # Model
-    def __init__(self, x, y, color, arrivalTime):
+    def __init__(self, x, y, color):
         super().__init__(x, y, color)
-        self.arrivalTime = arrivalTime
-        self.speed = -10 # default initial speed
+        self.speed = -5 # default initial speed
 
     # Controller
     def move(self, data):
-        if self.x <= data.xButton:
-            self.speed = -10
-        else:
-            if data.firstNote:
-                currentTime = mixer.music.get_pos()
-                xRemainder = self.x -data.xButton
-                self.speed = 10 * (xRemainder/(currentTime - self.arrivalTime) * \
-                    (data.timerDelay//10))
-            if self.speed >= 0:
-                self.speed = -10
-
         self.x += self.speed
         if (self.x > data.width):
             self.x = 0
@@ -77,10 +69,9 @@ class MovingDot(Dot):
 # Core animation code
 
 def init(data):
-    data.undrawnNotes = midiFile.midiBeatTimes('AULDLANG.mid')['notes']
-    # mixer.init()
-    mixer.music.load('AULDLANG.wav')
-    data.firstNote = False
+    data.snare = pygame.mixer.Sound('snare.ogg')
+    data.bass = pygame.mixer.Sound('bass.ogg')
+    data.hihat = pygame.mixer.Sound('hihat.ogg')
     data.dots = [ ]
     data.time = 0
     data.simpleDot = 30
@@ -99,6 +90,11 @@ def init(data):
     data.paused = False
     data.menu = True
     data.menuRect = []
+    data.partOfSong = 0
+    data.trueSong = []
+    data.song1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    data.song2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 def mousePressed(event, data):
     if data.menu:
@@ -107,7 +103,7 @@ def mousePressed(event, data):
 def redrawAll(canvas, data):
     if not data.menu and not data.paused:
         canvas.create_rectangle(10, data.height/3 - 30, data.width, data.height*2/3+30, fill = "gray")
-        canvas.create_text(data.width/2, 10, text="%d Points" % data.score)
+        canvas.create_text(data.width/2, 40, text="GOAT HERO... %d Points" % data.score, font = ("Arial", 30, "bold"), fill = "red")
         canvas.create_rectangle(data.xButton + 10, data.height/3 - 15, data.width, data.height/3 +15, fill = "darkred")
         canvas.create_rectangle(data.xButton + 10, data.height*2/3 -15, data.width, data.height*2/3 +15, fill = "darkred")
         canvas.create_rectangle(data.xButton+10, data.height/2 - 15, data.width, data.height/2 +15, fill = "darkred")
@@ -124,16 +120,41 @@ def redrawAll(canvas, data):
     elif data.menu and not data.paused:
         back = Rect(data.width/6, data.height/6, data.width*5/6,data.height*5/6, "gray")
         data.menuRect.append(back)
-        button1 = Rect(data.width/5,data.height/5, data.width*4/5, data.height*2/5, "black", "Click to start game!")
+        button1 = Rect(data.width/5,data.height/5, data.width*4/5, data.height*2/5, "black", "Click 1 or 2 to start game!")
         data.menuRect.append(button1)
         for rect in data.menuRect:
             rect.draw(canvas)
 
 def keyPressed(event, data, canvas):
+    # if event.keysym == "Up":
+    #     data.song.pop()
+    #     data.song.append(2)
+    # if event.keysym == "Left":
+    #     data.song.pop()
+    #     data.song.append(1)
+    # if event.keysym == "Right":
+    #     data.song.append(3)
+
+
+    if data.menu and not data.paused:
+        if event.keysym == "1":
+            data.trueSong = data.song1
+            data.menu = False
+        elif event.keysym == "2":
+            data.trueSong = data.song2
+            data.menu = False
+        # elif event.keysym == "3":
+        #     data.trueSong =data.song3
+        #     data.menu = False
+
+
+
+# 
     if not data.menu and not data.paused:
         data.clicked = False
         moreDots = []
-        if event.keysym == "Up":
+        if event.keysym == "s":
+            data.snare.play()
             for dots in data.dots:
                 # if not dots.containsPoint(data.xButton, data.height/2):
                 if dots.distanceToPoint(data.xButton, data.height / 2) > 20: #If not close
@@ -155,7 +176,8 @@ def keyPressed(event, data, canvas):
 
             data.dots = moreDots
 
-        elif event.keysym == "Left":
+        elif event.keysym == "w":
+            data.hihat.play()
             for dots in data.dots:
                 if dots.distanceToPoint(data.xButton, data.height / 3) > 20:
                     moreDots.append(dots)
@@ -175,7 +197,8 @@ def keyPressed(event, data, canvas):
                 data.score -= 2
             data.dots = moreDots
 
-        elif event.keysym == "Right":
+        elif event.keysym == "x":
+            data.bass.play()
             for dots in data.dots:
                 if dots.distanceToPoint(data.xButton, data.height * 2 / 3) > 20:
                     moreDots.append(dots)
@@ -200,34 +223,17 @@ def timerFired(data):
     if not data.menu and not data.paused:
         data.time += 1
 
-        if not data.firstNote:
-            if len(data.dots) > 0:
-                dot = data.dots[0]
-                if dot.x <= data.xButton + 490:
-                    data.firstNote = True
-                    mixer.music.play()
-
-
-        newNotes = copy.deepcopy(data.undrawnNotes)
-
-        for note in data.undrawnNotes:
-            convertedNoteTime = note[1] * 10
-            arrivalTime = note[1] * 1000
-            if convertedNoteTime <= data.time:
-
-                lane = int(random.randint(2,4))
-
-                color = None
-                if lane == 2:
-                    color = "blue"
-                elif lane == 3:
-                    color = "green"
-                else:
-                    color = "red"
-                data.dots.append(MovingDot(data.width, data.height * lane / 6,
-                     color, arrivalTime))
-                newNotes.remove(note)
-        data.undrawnNotes = newNotes
+        if len(data.trueSong) > data.partOfSong and data.trueSong[data.partOfSong] != 0:
+            lane = data.trueSong[data.partOfSong] + 1
+            print (str(lane))
+            color = None
+            if lane == 2:
+                color = "blue"
+            elif lane == 3:
+                color = "green"
+            else:
+                color = "red"
+            data.dots.append(MovingDot(data.width, data.height * lane / 6, color))
 
         newDots = []
         for dot in data.shrinkingDots:
@@ -247,7 +253,7 @@ def timerFired(data):
                 dot.move(data)
                 if dot.x > data.xButton - dot.r:
                     newDots.append(dot)
-                else:   
+                else:
                     data.score -= 10 #If missed
                     data.shrinkingDots.append(dot)
                     dot.r -= 5
@@ -258,16 +264,17 @@ def timerFired(data):
             if dot.time == 0:
                 dot.r = data.simpleDot
 
-        if len(data.shrinkingDots) == 0 and len(data.dots) == 0 and \
-                len(data.undrawnNotes) == 0:
-            mixer.music.stop()
-            init(data)
+        data.partOfSong += 1
+
+
+
+    # data.song.append(0)
 
 ####################################
 # use the run function as-is
 ####################################
 
-def run(width=300, height=300):
+def run(width=1000, height=500):
     def redrawAllWrapper(canvas, data):
         canvas.delete(ALL)
         canvas.create_rectangle(0, 0, data.width, data.height,
@@ -293,8 +300,8 @@ def run(width=300, height=300):
     data = Struct()
     data.width = width
     data.height = height
-    data.timerDelay = 100 # milliseconds
-    mixer.init()
+    data.timerDelay = 20 # milliseconds
+    pygame.mixer.init()
     init(data)
     # create the root and the canvas
     root = Tk()
@@ -310,6 +317,8 @@ def run(width=300, height=300):
     timerFiredWrapper(canvas, data)
     # and launch the app
     root.mainloop()  # blocks until window is closed
-    mixer.quit()
+    print(data.song)
+    pygame.mixer.quit()
 
-run(1000, 500)
+if __name__ == "__main__":
+    run()
