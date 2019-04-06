@@ -1,6 +1,8 @@
 
 import random, copy, midiFile
 from tkinter import *
+from pygame import mixer
+
 
 
 class Rect(object):
@@ -45,12 +47,24 @@ class Dot(object):
 
 class MovingDot(Dot):
     # Model
-    def __init__(self, x, y, color):
+    def __init__(self, x, y, color, arrivalTime):
         super().__init__(x, y, color)
+        self.arrivalTime = arrivalTime
         self.speed = -10 # default initial speed
 
     # Controller
     def move(self, data):
+        if self.x <= data.xButton:
+            self.speed = -10
+        else:
+            if data.firstNote:
+                currentTime = mixer.music.get_pos()
+                xRemainder = self.x -data.xButton
+                self.speed = 10 * (xRemainder/(currentTime - self.arrivalTime) * \
+                    (data.timerDelay//10))
+            if self.speed >= 0:
+                self.speed = -10
+
         self.x += self.speed
         if (self.x > data.width):
             self.x = 0
@@ -64,6 +78,9 @@ class MovingDot(Dot):
 
 def init(data):
     data.undrawnNotes = midiFile.midiBeatTimes('AULDLANG.mid')['notes']
+    # mixer.init()
+    mixer.music.load('AULDLANG.wav')
+    data.firstNote = False
     data.dots = [ ]
     data.time = 0
     data.simpleDot = 30
@@ -183,12 +200,19 @@ def timerFired(data):
     if not data.menu and not data.paused:
         data.time += 1
 
+        if not data.firstNote:
+            if len(data.dots) > 0:
+                dot = data.dots[0]
+                if dot.x <= data.xButton + 490:
+                    data.firstNote = True
+                    mixer.music.play()
+
 
         newNotes = copy.deepcopy(data.undrawnNotes)
 
         for note in data.undrawnNotes:
             convertedNoteTime = note[1] * 10
-
+            arrivalTime = note[1] * 1000
             if convertedNoteTime <= data.time:
 
                 lane = int(random.randint(2,4))
@@ -200,7 +224,8 @@ def timerFired(data):
                     color = "green"
                 else:
                     color = "red"
-                data.dots.append(MovingDot(data.width, data.height * lane / 6, color))
+                data.dots.append(MovingDot(data.width, data.height * lane / 6,
+                     color, arrivalTime))
                 newNotes.remove(note)
         data.undrawnNotes = newNotes
 
@@ -222,7 +247,7 @@ def timerFired(data):
                 dot.move(data)
                 if dot.x > data.xButton - dot.r:
                     newDots.append(dot)
-                else:
+                else:   
                     data.score -= 10 #If missed
                     data.shrinkingDots.append(dot)
                     dot.r -= 5
@@ -232,6 +257,11 @@ def timerFired(data):
             dot.time -= 1
             if dot.time == 0:
                 dot.r = data.simpleDot
+
+        if len(data.shrinkingDots) == 0 and len(data.dots) == 0 and \
+                len(data.undrawnNotes) == 0:
+            mixer.music.stop()
+            init(data)
 
 ####################################
 # use the run function as-is
@@ -264,6 +294,7 @@ def run(width=300, height=300):
     data.width = width
     data.height = height
     data.timerDelay = 100 # milliseconds
+    mixer.init()
     init(data)
     # create the root and the canvas
     root = Tk()
@@ -279,6 +310,6 @@ def run(width=300, height=300):
     timerFiredWrapper(canvas, data)
     # and launch the app
     root.mainloop()  # blocks until window is closed
-    print("bye!")
+    mixer.quit()
 
 run(1000, 500)
