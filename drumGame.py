@@ -1,11 +1,7 @@
-# oopyDotsDemo.py
-# starts with betterDotsDemo and adds:
-#   * a dotCounter that counts all the instances of Dot or its subclasses
-#   * a MovingDot subclass of Dot that scrolls horizontally
-#   * a FlashingMovingDot subclass of MovingDot that flashes and moves
 
 import random
 from tkinter import *
+import midiFile
 
 class Dot(object):
     dotCount = 0
@@ -54,6 +50,7 @@ class MovingDot(Dot):
 # Core animation code
 
 def init(data):
+    data.notes= midiFile.midiBeatTimes('AULDLANG.mid')
     data.dots = [ ]
     data.time = 0
     data.simpleDot = 30
@@ -138,8 +135,13 @@ def keyPressed(event, data, canvas):
 def timerFired(data):
     data.time += 1
     data.dotTime += 1
+    marginOfCreation = 0.2
+    for note in data.notes['notes']:
+        convertedNoteTime = note[1]/(1000//data.timerDelay)
+        if convertedNoteTime 
     if data.time % 10 == 0:
         lane = random.randint(2, 4)
+
         color = None
         if lane == 2:
             color = "blue"
@@ -214,7 +216,7 @@ def run(width=300, height=300):
     data = Struct()
     data.width = width
     data.height = height
-    data.timerDelay = 50 # milliseconds
+    data.timerDelay = 20 # milliseconds
     init(data)
     # create the root and the canvas
     root = Tk()
